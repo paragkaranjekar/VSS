@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/gen_sub.dir/gen_sub.cpp.o -o gen_sub  -Wl,-rpath,/usr/local/lib libvss_topics.a /usr/local/lib/libddsc.so.0.11.0 -lpthread 

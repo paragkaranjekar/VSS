@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/terminal1_dds_bridge.dir/vss_dds_bridge.cpp.o -o terminal1_dds_bridge  -Wl,-rpath,/usr/local/lib: libvss_topics.a /usr/local/lib/libddsc.so.0.11.0 -lpthread 

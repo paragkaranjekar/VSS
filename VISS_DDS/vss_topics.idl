@@ -1,0 +1,12 @@
+struct SchemaRequest {
+    string<256> path;
+};
+
+struct SchemaResponse {
+    string<4096> json;
+};
+
+struct VSSData {
+    string<2048> payload;
+};
+

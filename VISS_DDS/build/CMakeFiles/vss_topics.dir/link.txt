@@ -1,0 +1,2 @@
+/usr/bin/ar qc libvss_topics.a CMakeFiles/vss_topics.dir/vss_topics.c.o
+/usr/bin/ranlib libvss_topics.a

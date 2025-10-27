@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/terminal3_subscriber.dir/terminal3_subscriber.cpp.o -o terminal3_subscriber  -Wl,-rpath,/usr/local/lib: libvss_topics.a /usr/local/lib/libddsc.so.0.11.0 -lpthread 
