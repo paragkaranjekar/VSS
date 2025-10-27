@@ -67,49 +67,7 @@ void listenFilteredData(dds_entity_t participant, const std::string &filterPath)
     }
 }
 
-// -----------------------------------------------------------------------------
-// Send schema request
-// -----------------------------------------------------------------------------
-void sendSchemaRequest(dds_entity_t participant, const std::string &path)
-{
-    dds_entity_t topic = dds_create_topic(participant, &SchemaRequest_desc, SCHEMA_REQ_TOPIC, nullptr, nullptr);
-    dds_entity_t writer = dds_create_writer(participant, topic, nullptr, nullptr);
 
-    SchemaRequest req{};
-    strncpy(req.path, path.c_str(), sizeof(req.path) - 1);
-
-    std::cout << "[DDS] Sending schema request for: " << req.path << std::endl;
-    dds_write(writer, &req);
-}
-
-// -----------------------------------------------------------------------------
-// Listen for schema responses
-// -----------------------------------------------------------------------------
-void listenSchemaResponse(dds_entity_t participant)
-{
-    dds_entity_t topic = dds_create_topic(participant, &SchemaResponse_desc, SCHEMA_RES_TOPIC, nullptr, nullptr);
-    dds_entity_t reader = dds_create_reader(participant, topic, nullptr, nullptr);
-
-    SchemaResponse res{};
-    void *samples[1] = {&res};
-    dds_sample_info_t info{};
-
-    std::cout << "[DDS] Waiting for schema response..." << std::endl;
-
-    for (int i = 0; i < 50; ++i)  // wait ~5s max
-    {
-        dds_return_t rc = dds_take(reader, samples, &info, 1, 1);
-        if (rc > 0 && info.valid_data)
-        {
-            std::cout << "\n✅ [DDS] Received Schema Response:\n";
-            std::cout << res.json << "\n";
-            std::cout << "--------------------------------------\n";
-            return;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    std::cout << "❌ [DDS] No schema response received (timeout)\n";
-}
 
 // -----------------------------------------------------------------------------
 // MAIN
@@ -123,8 +81,6 @@ int main(int argc, char **argv)
     else
         filterPath = "Vehicle.Chassis";  // default filter if none provided
 
-    std::cout << "[Generic DDS Subscriber] Starting...\n";
-    std::cout << "[DDS] Filter Path: " << filterPath << "\n";
 
     dds_entity_t participant = dds_create_participant(DDS_DOMAIN_DEFAULT, nullptr, nullptr);
     if (participant < 0)
@@ -133,8 +89,45 @@ int main(int argc, char **argv)
         return 1;
     }
     
-    sendSchemaRequest(participant, filterPath);
-    listenSchemaResponse(participant);
+    
+    // 2️⃣ Create topics and writer/reader
+    dds_entity_t req_topic = dds_create_topic(participant, &SchemaRequest_desc, SCHEMA_REQ_TOPIC, nullptr, nullptr);
+    dds_entity_t req_writer = dds_create_writer(participant, req_topic, nullptr, nullptr);
+
+    dds_entity_t res_topic = dds_create_topic(participant, &SchemaResponse_desc, SCHEMA_RES_TOPIC, nullptr, nullptr);
+    dds_entity_t res_reader = dds_create_reader(participant, res_topic, nullptr, nullptr);
+
+    // 3️⃣ Wait a bit for DDS discovery
+    std::cout << "Waiting 2 seconds for DDS discovery...\n";
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // 4️⃣ Send one schema request
+    SchemaRequest req{};
+    strncpy(req.path, "Vehicle.Chassis", sizeof(req.path) - 1);
+    std::cout << "Sending schema request for: " << req.path << std::endl;
+    dds_write(req_writer, &req);
+
+    // 5️⃣ Wait up to 5 seconds for response
+    SchemaResponse res{};
+    void *samples[1] = {&res};
+    dds_sample_info_t info;
+
+    bool gotResponse = false;
+    for (int i = 0; i < 50; ++i) {  // ~5 seconds
+        dds_return_t rc = dds_take(res_reader, samples, &info, 1, 1);
+        if (rc > 0 && info.valid_data) {
+            std::cout << "\nReceived Schema Response:\n";
+            std::cout << res.json << "\n";
+            gotResponse = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    if (!gotResponse) {
+        std::cerr << "No schema response received (timeout)\n";
+    }
+
 
     listenFilteredData(participant, filterPath);
 
