@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/HelloworldSubscriber.dir/subscriber.c.o CMakeFiles/HelloworldSubscriber.dir/HelloWorldData.c.o -o HelloworldSubscriber  -Wl,-rpath,/usr/local/lib /usr/local/lib/libddsc.so.0.11.0 

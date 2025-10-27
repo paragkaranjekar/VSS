@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/HelloworldPublisher.dir/publisher.c.o CMakeFiles/HelloworldPublisher.dir/HelloWorldData.c.o -o HelloworldPublisher  -Wl,-rpath,/usr/local/lib /usr/local/lib/libddsc.so.0.11.0 
