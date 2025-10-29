@@ -1,0 +1,77 @@
+------------------------------------------------------------
+Dependencies
+------------------------------------------------------------
+Install required packages:
+sudo apt update
+sudo apt install -y build-essential cmake git wget curl     sqlite3 libsqlite3-dev     nlohmann-json3-dev
+
+------------------------------------------------------------
+Install Cyclone DDS
+------------------------------------------------------------
+cd ~
+git clone https://github.com/eclipse-cyclonedds/cyclonedds.git
+cd cyclonedds
+mkdir build && cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+make -j$(nproc)
+sudo make install
+
+------------------------------------------------------------
+Build the DataBroker
+------------------------------------------------------------
+cd ~/VSS_databroker
+g++ vss_qnx.cpp -o vss_databroker -lsqlite3 -lpthread
+
+------------------------------------------------------------
+Build the VISS DDS Components
+------------------------------------------------------------
+cd ~/viss_dds
+idlc -l c vss_topics.idl
+
+# Generated files:
+#   vss_topics.c
+#   vss_topics.h
+
+mkdir build
+cd build
+cmake ..
+make
+
+# Executables after build:
+#   terminal1_dds_bridge
+#   terminal3_subscriber
+#   gen_sub
+
+------------------------------------------------------------
+Run the System
+------------------------------------------------------------
+Run in this order (each in separate terminal):
+
+1. Start the DataBroker
+   ./vss_databroker
+
+2. Start the VISS DDS Bridge (VISS Server)
+   ./terminal1_dds_bridge
+
+3. Start a Subscriber
+   ./terminal3_subscriber
+   or
+   ./gen_sub
+
+   You can also subscribe to a specific VSS path(optional else it takes default path chassis):
+   ./gen_sub Vehicle.Chassis.Brake
+
+
+------------------------------------------------------------
+Rebuild Instructions
+------------------------------------------------------------
+cd ~/viss_dds/build
+rm -rf *
+cmake ..
+make
+
+
+If 'idlc' is not found:
+export PATH=$PATH:/usr/local/bin
+which idlc
+
